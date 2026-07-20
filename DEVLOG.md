@@ -6,8 +6,8 @@
      Log    = newest dated entry on top, one per work session. -->
 
 ## Status
-Now:  ALL MILESTONES DONE (M0–M4, one day). Bell fully live; first fully-random bell tonight 20:07
-Next: multi-day soak; later maybe tune weights, iOS install
+Now:  M0–M4 done; SOAKING (~2 weeks). Public/friends version planned + gated: docs/PRD_BeHereNow_Public_July2026.md
+Next: live with the bell. If still wanted after the soak → P1 (Workers web-push spike). Blocking Q for P3: pick a domain.
 
 ## TODO
 - [x] M0 — push feasibility spike on the S24 (see plan for Samsung gotchas)
@@ -15,8 +15,10 @@ Next: multi-day soak; later maybe tune weights, iOS install
 - [x] M2 — 48-line pool (server-side, in-the-spirit-of, original)
 - [x] M3 — ephemeral visual + honest seed-derived teaser (verified on S24)
 - [x] M4 — state-aware landing/install page (philosophy + Samsung fixes + iOS note)
-- [ ] soak — a few days of real bells across all three manifestations
-- [ ] someday: tune manifestation weights; iOS install; flesh out CLAUDE.md
+- [ ] soak — ~2 weeks of real bells (gate for the public version)
+- [ ] pick a domain for the public version (blocks P3)
+- [ ] after soak: P1–P4 per docs/PRD_BeHereNow_Public_July2026.md
+- [ ] someday: tune manifestation weights; flesh out CLAUDE.md
 - [ ] M2 — line pool (dedicated writing session)
 - [ ] M3 — ephemeral visual
 - [ ] M4 — landing/install page
@@ -24,6 +26,14 @@ Next: multi-day soak; later maybe tune weights, iOS install
 - [x] write the founding PRD (docs/PRD_<Name>_<Month><Year>.md)
 
 ## Log
+### 2026-07-20 — public/friends version planned, gated on soak
+- New PRD: docs/PRD_BeHereNow_Public_July2026.md (links back to founding
+  PRD, which deferred exactly this). Decisions: port to Cloudflare
+  Workers (DO-per-subscriber + alarms; push subscription = identity, no
+  accounts/analytics ever); domain TBD (blocks P3, must precede first
+  friend install); soak ~2 weeks before building. Only new technical
+  risk: web push from Workers (VAPID via WebCrypto) — P1 spikes it.
+
 ### 2026-07-20 — M4 shipped: state-aware landing page
 - Index now has three states: unsubscribed browser → philosophy +
   install steps (Samsung silent-bell fixes, iOS-later note); installed
