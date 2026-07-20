@@ -10,15 +10,9 @@ Now:  M0–M4 done; SOAKING (~2 weeks). Public/friends version planned + gated: 
 Next: live with the bell. If still wanted after the soak → P1 (Workers web-push spike). Blocking Q for P3: pick a domain.
 
 ## TODO
-- [ ] real screenshots for the breadcrumbs campaign — server is live and reachable
-      (https://alipc-1.tailb5ecd6.ts.net:8444), campaign currently registered with
-      `screenshot: type: none` (code-card fallback). Need actual captures of the three
-      landing states (unsubscribed → philosophy+install, first-run → begin, subscribed →
-      breathing dot) plus the ephemeral visual mid-render if possible. Drop PNGs into
-      `marketing/screenshots/`, flip campaign to `type: static` + glob in
-      breadcrumbs/config/projects.yaml. Best done from this pane — it knows the state
-      machine and SW caching quirks; a generic driver may also be landing in breadcrumbs
-      itself (see breadcrumbs DEVLOG) which could subsume this.
+- [x] real screenshots for the breadcrumbs campaign — 4 PNGs in marketing/screenshots/
+      (3 landing states + ephemeral visual, captured headless from the live server);
+      campaign flipped to `type: static` + glob in breadcrumbs/config/projects.yaml
 - [x] M0 — push feasibility spike on the S24 (see plan for Samsung gotchas)
 - [x] M1 — buzz + line bells end-to-end (bell-server container + scheduler)
 - [x] M2 — 48-line pool (server-side, in-the-spirit-of, original)
@@ -28,13 +22,18 @@ Next: live with the bell. If still wanted after the soak → P1 (Workers web-pus
 - [ ] pick a domain for the public version (blocks P3)
 - [ ] after soak: P1–P4 per docs/PRD_BeHereNow_Public_July2026.md
 - [ ] someday: tune manifestation weights; flesh out CLAUDE.md
-- [ ] M2 — line pool (dedicated writing session)
-- [ ] M3 — ephemeral visual
-- [ ] M4 — landing/install page
-- [ ] flesh out CLAUDE.md — what this is, stack, structure
 - [x] write the founding PRD (docs/PRD_<Name>_<Month><Year>.md)
 
 ## Log
+### 2026-07-20 — campaign screenshots captured
+- 4 real captures from the live server (headless puppeteer per devroot
+  README pattern; localhost:8090 = the same container behind
+  https://alipc-1.tailb5ecd6.ts.net:8444): philosophy+install page,
+  first-run begin (standalone stubbed), breathing dot (subscription
+  stubbed, mid-breath), ephemeral visual mid-render (fresh ?bell= ts).
+- Dropped in marketing/screenshots/; breadcrumbs campaign flipped to
+  screenshot type: static, glob screenshots/*.png.
+
 ### 2026-07-20 — public/friends version planned, gated on soak
 - New PRD: docs/PRD_BeHereNow_Public_July2026.md (links back to founding
   PRD, which deferred exactly this). Decisions: port to Cloudflare
