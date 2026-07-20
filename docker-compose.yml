@@ -13,6 +13,9 @@ services:
       WINDOW_END: "23:00"
       BELLS_PER_DAY: "4"
       MIN_GAP_MIN: "90"
+      W_BUZZ: "1"
+      W_LINE: "1"
+      W_VISUAL: "1"
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
     volumes:

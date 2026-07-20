@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import webpush from 'web-push';
 import { drawNextFire, pickMode } from './schedule.js';
 import { pickLine } from './lines.js';
+import { distill } from '../app/seed.js';
 import { telegramPing } from './telegram.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -59,7 +60,7 @@ async function fireBell() {
   const mode = pickMode(cfg.weights);
   const payload = { mode, ts: Date.now() };
   if (mode === 'line') payload.text = pickLine();
-  if (mode === 'visual') payload.text = 'something is forming'; // real distillation in M3
+  if (mode === 'visual') payload.text = distill(payload.ts);
 
   try {
     await webpush.sendNotification(sub, JSON.stringify(payload), { TTL: cfg.ttlSec });

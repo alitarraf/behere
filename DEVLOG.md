@@ -6,13 +6,16 @@
      Log    = newest dated entry on top, one per work session. -->
 
 ## Status
-Now:  M1 LIVE — behere_bell container running, first scheduled bell tonight 20:16; soak for a day
-Next: confirm a day of real bells, then M2 (real line pool) / M3 (visual renderer)
+Now:  M2+M3 LIVE — all three manifestations at even thirds; first fully-random bell tonight 20:07
+Next: soak a few days of real bells, then M4 (install page) — mostly done already, just needs the philosophy blurb
 
 ## TODO
 - [x] M0 — push feasibility spike on the S24 (see plan for Samsung gotchas)
-- [x] M1 — buzz + line bells end-to-end (bell-server container + scheduler) — built, soaking
-- [ ] M1 soak — a full day of real bells lands correctly
+- [x] M1 — buzz + line bells end-to-end (bell-server container + scheduler)
+- [x] M2 — 48-line pool (server-side, in-the-spirit-of, original)
+- [x] M3 — ephemeral visual + honest seed-derived teaser (verified on S24)
+- [ ] soak — a few days of real bells across all three manifestations
+- [ ] M4 — install page polish (philosophy blurb + Samsung notification steps)
 - [ ] M2 — line pool (dedicated writing session)
 - [ ] M3 — ephemeral visual
 - [ ] M4 — landing/install page
@@ -20,6 +23,15 @@ Next: confirm a day of real bells, then M2 (real line pool) / M3 (visual rendere
 - [x] write the founding PRD (docs/PRD_<Name>_<Month><Year>.md)
 
 ## Log
+### 2026-07-20 — M2 + M3 shipped
+- M2: 48 original lines (12 per teacher-spirit), server-side pool.
+- M3: app/seed.js shared seed→params→words module (server + browser use
+  the same code, so the teaser always matches the render); app/visual.js
+  canvas flow field, ~10s life, tap-gated, 60s freshness, URL scrubbed;
+  SW behere-v2 offline-first precache. Weights now even thirds.
+- Verified live: "restless rose field, drifting south" teaser → matching
+  rose field render on the S24, faded out, gone.
+
 ### 2026-07-20 — port move + right bot
 - 9443 collided with Portainer → moved to 8444 (verified free first);
   new origin https://alipc-1.tailb5ecd6.ts.net:8444, PWA reinstalled.

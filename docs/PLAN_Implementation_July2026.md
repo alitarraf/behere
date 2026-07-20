@@ -116,13 +116,19 @@
       devroot README: check listeners + docker-published ports before
       assigning any port. Dead-man ping switched to the alidevhub bot
       (token from ~/.hub/telegram.env).
-- [ ] **M2 — the real line pool:** write ~40–60 fresh lines "in the
-      spirit of" Krishnamurti / Tolle / Osho / Ram Dass (a dedicated
-      writing session — never verbatim), replacing the starter pool.
-- [ ] **M3 — ephemeral visual:** canvas 2D simplex-noise flow field
-      (WebGL only if 2D proves insufficient), timestamp-seeded, tap-gated,
-      60s freshness window, ~10s life, fade out. Includes the seed→words
-      distillation so the notification honestly teases the image.
+- [x] **M2 — the real line pool — DONE 2026-07-20.** 48 original lines,
+      12 per teacher-spirit, all ≤90 chars, no dupes, famous phrases
+      deliberately avoided. Lives server-side in `server/lines.js`.
+- [x] **M3 — ephemeral visual — DONE 2026-07-20.** Canvas 2D seeded
+      flow field (`app/visual.js`): value-noise field bent toward a
+      seed-chosen drift direction, seeded palette/tempo/density, ~10s
+      life with fade envelope, tap-gated with 60s freshness, URL trace
+      scrubbed via replaceState. `app/seed.js` is shared by browser and
+      server so the notification teaser ("restless rose field, drifting
+      south") honestly describes the exact visual. SW is now
+      offline-first (precached shell, `behere-v2`) so taps render off
+      the tailnet. All three manifestations live at even thirds.
+      Verified live on the S24: teaser matched the render.
 - [ ] **M4 — landing/install page:** the PWA's own index — philosophy in
       a few lines, install CTA, Android steps now, iOS steps later.
 

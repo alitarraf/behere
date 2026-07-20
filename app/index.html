@@ -38,9 +38,18 @@
 <button id="begin" class="hidden">begin</button>
 <div id="surface" class="hidden"></div>
 <div id="msg"></div>
-<script>
+<script type="module">
+import { renderBell } from './visual.js';
+
 const $ = id => document.getElementById(id);
 const msg = t => { $('msg').textContent = t; };
+
+// Visual bell: only if opened within 60s of the bell's own moment.
+// Late taps get the blank surface — the moment is gone.
+const FRESH_MS = 60_000;
+const bellTs = Number(new URLSearchParams(location.search).get('bell')) || 0;
+const bellFresh = bellTs && Math.abs(Date.now() - bellTs) < FRESH_MS;
+history.replaceState(null, '', '/');   // the URL holds no trace either
 
 async function state() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
@@ -86,7 +95,14 @@ function show(st) {
 }
 
 $('begin').addEventListener('click', begin);
-state().then(st => { if (st !== 'unsupported') show(st); });
+state().then(st => {
+  if (st === 'unsupported') return;
+  if (st === 'ready' && bellFresh) {
+    renderBell(bellTs, () => show('ready'));
+  } else {
+    show(st);
+  }
+});
 </script>
 </body>
 </html>
