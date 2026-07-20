@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BeHereNow</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon-192.png">
+<meta name="theme-color" content="#0d0d10">
+<style>
+  html, body {
+    margin: 0; height: 100%;
+    background: #0d0d10; color: #d8c9a3;
+    font: 16px/1.5 Georgia, serif;
+    display: grid; place-items: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #begin {
+    background: none; border: 1px solid #d8c9a355; color: #d8c9a3;
+    font: inherit; padding: 0.8em 2.2em; border-radius: 999px;
+    cursor: pointer; letter-spacing: 0.08em;
+  }
+  #surface {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 1px solid #d8c9a366;
+    animation: breathe 7s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); opacity: 0.35; }
+    50%      { transform: scale(2.2); opacity: 0.8; }
+  }
+  #msg { position: fixed; bottom: 2em; left: 0; right: 0;
+         text-align: center; font-size: 0.8em; opacity: 0.5; padding: 0 2em; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<button id="begin" class="hidden">begin</button>
+<div id="surface" class="hidden"></div>
+<div id="msg"></div>
+<script>
+const $ = id => document.getElementById(id);
+const msg = t => { $('msg').textContent = t; };
+
+async function state() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    msg('this browser cannot receive the bell'); return 'unsupported';
+  }
+  const reg = await navigator.serviceWorker.register('/sw.js');
+  await navigator.serviceWorker.ready;
+  const sub = await reg.pushManager.getSubscription();
+  return sub && Notification.permission === 'granted' ? 'ready' : 'first-run';
+}
+
+async function begin() {
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { msg('notifications were not allowed'); return; }
+    const reg = await navigator.serviceWorker.ready;
+    const { key } = await (await fetch('/vapid')).json();
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlB64ToUint8Array(key),
+    });
+    const res = await fetch('/subscribe', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(sub),
+    });
+    if (!res.ok) throw new Error('subscribe failed: ' + res.status);
+    show('ready');
+  } catch (e) { msg(String(e)); }
+}
+
+function urlB64ToUint8Array(s) {
+  const pad = '='.repeat((4 - s.length % 4) % 4);
+  const b64 = (s + pad).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(b64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+function show(st) {
+  $('begin').classList.toggle('hidden', st !== 'first-run');
+  $('surface').classList.toggle('hidden', st !== 'ready');
+  if (st === 'ready') msg('');
+}
+
+$('begin').addEventListener('click', begin);
+state().then(st => { if (st !== 'unsupported') show(st); });
+</script>
+</body>
+</html>

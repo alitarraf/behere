@@ -1,0 +1,19 @@
+services:
+  bell:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: behere_bell
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    environment:
+      TZ: America/Los_Angeles
+      WINDOW_START: "07:00"
+      WINDOW_END: "23:00"
+      BELLS_PER_DAY: "4"
+      MIN_GAP_MIN: "90"
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+    volumes:
+      - ./server/data:/srv/server/data
