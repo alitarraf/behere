@@ -129,8 +129,15 @@
       offline-first (precached shell, `behere-v2`) so taps render off
       the tailnet. All three manifestations live at even thirds.
       Verified live on the S24: teaser matched the render.
-- [ ] **M4 — landing/install page:** the PWA's own index — philosophy in
-      a few lines, install CTA, Android steps now, iOS steps later.
+- [x] **M4 — landing/install page — DONE 2026-07-20.** The index is
+      state-aware: un-subscribed browser → philosophy + install steps
+      (incl. the three Samsung silent-bell fixes and an iOS-later note);
+      installed-but-not-begun → philosophy + begin; subscribed → the
+      breathing dot only. Preview requires an incognito tab — any
+      subscribed browser correctly sees just the dot. SW cache v3.
+
+**All milestones complete 2026-07-20.** Remaining: multi-day soak;
+revisit manifestation weights empirically; iOS install when wanted.
 
 ## Risks / iOS notes
 

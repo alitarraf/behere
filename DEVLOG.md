@@ -6,16 +6,17 @@
      Log    = newest dated entry on top, one per work session. -->
 
 ## Status
-Now:  M2+M3 LIVE — all three manifestations at even thirds; first fully-random bell tonight 20:07
-Next: soak a few days of real bells, then M4 (install page) — mostly done already, just needs the philosophy blurb
+Now:  ALL MILESTONES DONE (M0–M4, one day). Bell fully live; first fully-random bell tonight 20:07
+Next: multi-day soak; later maybe tune weights, iOS install
 
 ## TODO
 - [x] M0 — push feasibility spike on the S24 (see plan for Samsung gotchas)
 - [x] M1 — buzz + line bells end-to-end (bell-server container + scheduler)
 - [x] M2 — 48-line pool (server-side, in-the-spirit-of, original)
 - [x] M3 — ephemeral visual + honest seed-derived teaser (verified on S24)
+- [x] M4 — state-aware landing/install page (philosophy + Samsung fixes + iOS note)
 - [ ] soak — a few days of real bells across all three manifestations
-- [ ] M4 — install page polish (philosophy blurb + Samsung notification steps)
+- [ ] someday: tune manifestation weights; iOS install; flesh out CLAUDE.md
 - [ ] M2 — line pool (dedicated writing session)
 - [ ] M3 — ephemeral visual
 - [ ] M4 — landing/install page
@@ -23,6 +24,15 @@ Next: soak a few days of real bells, then M4 (install page) — mostly done alre
 - [x] write the founding PRD (docs/PRD_<Name>_<Month><Year>.md)
 
 ## Log
+### 2026-07-20 — M4 shipped: state-aware landing page
+- Index now has three states: unsubscribed browser → philosophy +
+  install steps (Samsung silent-bell fixes, iOS-later note); installed
+  first-run → philosophy + begin; subscribed → breathing dot only.
+- Added the Linji/Huangbo three-blows story (Record of Linji) as the
+  founding parable — the bell as the master's stick: presence cannot be
+  explained, only interrupted into. SW cache v4.
+- All PRD milestones (M0–M4) complete in one day. Remaining: soak.
+
 ### 2026-07-20 — M2 + M3 shipped
 - M2: 48 original lines (12 per teacher-spirit), server-side pool.
 - M3: app/seed.js shared seed→params→words module (server + browser use

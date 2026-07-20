@@ -9,13 +9,27 @@
 <meta name="theme-color" content="#0d0d10">
 <style>
   html, body {
-    margin: 0; height: 100%;
+    margin: 0; min-height: 100%;
     background: #0d0d10; color: #d8c9a3;
-    font: 16px/1.5 Georgia, serif;
-    display: grid; place-items: center;
+    font: 17px/1.65 Georgia, serif;
     -webkit-tap-highlight-color: transparent;
   }
+  body { display: grid; place-items: center; min-height: 100vh; }
+  .card { max-width: 34em; padding: 3em 1.6em 4em; }
+  h1 {
+    font-size: 1.15em; font-weight: normal; letter-spacing: 0.24em;
+    text-transform: lowercase; opacity: 0.9; margin: 0 0 1.6em;
+  }
+  p { margin: 0 0 1.1em; opacity: 0.88; }
+  .sig { opacity: 0.45; font-size: 0.85em; font-style: italic; }
+  hr { border: 0; border-top: 1px solid #d8c9a322; margin: 2em 0; }
+  ol { padding-left: 1.3em; opacity: 0.88; }
+  li { margin-bottom: 0.5em; }
+  details { margin-top: 1.4em; opacity: 0.75; }
+  summary { cursor: pointer; }
+  details p, details ol { font-size: 0.92em; }
   #begin {
+    display: block; margin: 2.4em auto 0;
     background: none; border: 1px solid #d8c9a355; color: #d8c9a3;
     font: inherit; padding: 0.8em 2.2em; border-radius: 999px;
     cursor: pointer; letter-spacing: 0.08em;
@@ -31,13 +45,71 @@
   }
   #msg { position: fixed; bottom: 2em; left: 0; right: 0;
          text-align: center; font-size: 0.8em; opacity: 0.5; padding: 0 2em; }
-  .hidden { display: none; }
+  .hidden { display: none !important; }
 </style>
 </head>
 <body>
-<button id="begin" class="hidden">begin</button>
+
+<div id="intro" class="card hidden">
+  <h1>be here now</h1>
+  <p>This is a bell.</p>
+  <p>A few times a day, at moments no one chooses, it rings —
+     sometimes only a buzz, sometimes a single line, sometimes ten
+     seconds of something that will never exist again.</p>
+  <p>It keeps no history. No streaks, no progress, nothing to review,
+     nothing to browse. It holds no memory of you, and gives you
+     nothing to hold onto either.</p>
+  <p>Either you meet the moment, or it passes. Both are fine.
+     Another will come.</p>
+  <hr>
+  <p>Twelve centuries ago the young monk Linji asked his master Huangbo,
+     "What is the essential meaning of the Buddha's teaching?"
+     Before he finished, Huangbo struck him. He asked twice more,
+     and was struck twice more.</p>
+  <p>Defeated, Linji went to the hermit Dayu and told his story.
+     "Huangbo exhausted himself for your sake, kind as a grandmother,"
+     said Dayu, "and you come asking what you did wrong?"
+     At those words Linji woke up — and became the master whose own
+     school taught with a shout that cut thought mid-sentence.</p>
+  <p>The blows were never punishment. They were the teaching itself:
+     presence cannot be explained, only interrupted into.
+     And an interruption you can see coming is just another
+     appointment.</p>
+  <p>This is a small stick that lives in your pocket.</p>
+  <p class="sig">after Krishnamurti · Tolle · Osho · Ram Dass · and the Record of Linji</p>
+
+  <div id="install-steps">
+    <hr>
+    <p>To let it ring, it has to live on the home screen:</p>
+    <ol>
+      <li>Chrome menu (⋮) → <b>Add to Home screen</b> → <b>Install</b></li>
+      <li>Open it <b>from the home screen icon</b> — not this tab</li>
+      <li>Tap <b>begin</b>, allow notifications</li>
+    </ol>
+    <details>
+      <summary>If the bell arrives silently (Samsung)</summary>
+      <ol>
+        <li>Long-press an arrived notification → switch <b>Silent</b> to <b>Alert</b></li>
+        <li>Or: Settings → Apps → BeHereNow → Notifications → allow sound &amp; vibration
+            (categories hide behind Settings → Notifications → Advanced →
+            "Manage notification categories for each app")</li>
+        <li>Check the <b>notification volume</b> slider — it is separate from ring volume</li>
+      </ol>
+    </details>
+    <details>
+      <summary>iPhone (later)</summary>
+      <p>Needs iOS 16.4+. Share sheet → <b>Add to Home Screen</b> first —
+         iOS only allows notifications for installed web apps — then open
+         from the icon and tap begin.</p>
+    </details>
+  </div>
+
+  <button id="begin" class="hidden">begin</button>
+</div>
+
 <div id="surface" class="hidden"></div>
 <div id="msg"></div>
+
 <script type="module">
 import { renderBell } from './visual.js';
 
@@ -51,6 +123,9 @@ const bellTs = Number(new URLSearchParams(location.search).get('bell')) || 0;
 const bellFresh = bellTs && Math.abs(Date.now() - bellTs) < FRESH_MS;
 history.replaceState(null, '', '/');   // the URL holds no trace either
 
+const standalone = matchMedia('(display-mode: standalone)').matches
+  || navigator.standalone === true;
+
 async function state() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
     msg('this browser cannot receive the bell'); return 'unsupported';
@@ -58,7 +133,8 @@ async function state() {
   const reg = await navigator.serviceWorker.register('/sw.js');
   await navigator.serviceWorker.ready;
   const sub = await reg.pushManager.getSubscription();
-  return sub && Notification.permission === 'granted' ? 'ready' : 'first-run';
+  if (sub && Notification.permission === 'granted') return 'ready';
+  return standalone ? 'first-run' : 'browser';
 }
 
 async function begin() {
@@ -89,6 +165,11 @@ function urlB64ToUint8Array(s) {
 }
 
 function show(st) {
+  // browser: philosophy + install steps, no button
+  // first-run (installed): philosophy + begin, no install steps
+  // ready: the breathing surface, nothing else
+  $('intro').classList.toggle('hidden', st === 'ready');
+  $('install-steps').classList.toggle('hidden', st !== 'browser');
   $('begin').classList.toggle('hidden', st !== 'first-run');
   $('surface').classList.toggle('hidden', st !== 'ready');
   if (st === 'ready') msg('');

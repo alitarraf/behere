@@ -1,6 +1,6 @@
 // Offline-first: the shell is precached so a bell tap always opens,
 // even when the phone can't reach the tailnet. Bump CACHE on deploys.
-const CACHE = 'behere-v2';
+const CACHE = 'behere-v4';
 const SHELL = ['/', '/seed.js', '/visual.js', '/manifest.webmanifest',
                '/icons/icon-192.png', '/icons/icon-512.png'];
 
