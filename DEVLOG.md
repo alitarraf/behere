@@ -10,6 +10,15 @@ Now:  M0–M4 done; SOAKING (~2 weeks). Public/friends version planned + gated: 
 Next: live with the bell. If still wanted after the soak → P1 (Workers web-push spike). Blocking Q for P3: pick a domain.
 
 ## TODO
+- [ ] real screenshots for the breadcrumbs campaign — server is live and reachable
+      (https://alipc-1.tailb5ecd6.ts.net:8444), campaign currently registered with
+      `screenshot: type: none` (code-card fallback). Need actual captures of the three
+      landing states (unsubscribed → philosophy+install, first-run → begin, subscribed →
+      breathing dot) plus the ephemeral visual mid-render if possible. Drop PNGs into
+      `marketing/screenshots/`, flip campaign to `type: static` + glob in
+      breadcrumbs/config/projects.yaml. Best done from this pane — it knows the state
+      machine and SW caching quirks; a generic driver may also be landing in breadcrumbs
+      itself (see breadcrumbs DEVLOG) which could subsume this.
 - [x] M0 — push feasibility spike on the S24 (see plan for Samsung gotchas)
 - [x] M1 — buzz + line bells end-to-end (bell-server container + scheduler)
 - [x] M2 — 48-line pool (server-side, in-the-spirit-of, original)
