@@ -6,16 +6,17 @@
      Log    = newest dated entry on top, one per work session. -->
 
 ## Status
-Now:  Native full-screen bell WORKS on the S24 (verified 2026-07-23). Locked/screen-off →
-      full takeover + local visual; in-use → graceful heads-up. Real server bell armed via
-      tailnet /next poll. Plan: docs/PRD_BeHereNow_FullScreenBell_July2026.md
-Next: decide PWA retirement (avoid dual-fire during soak); then N3 hardening. Consider making
-      this the primary bell and dropping web-push.
+Now:  Native full-screen bell is THE bell. Verified on S24 (2026-07-23): locked → full
+      takeover + local visual; in-use → heads-up. Web-push RETIRED — server just owns the
+      schedule (/next) + watches for a silent phone. Plan: docs/PRD_BeHereNow_FullScreenBell_July2026.md
+Next: N3 hardening (reboot re-arm, DST). Soak on the native bell.
 
 ## TODO
 - [x] N0 — VERIFIED on S24: dozing phone woke itself → full-screen takeover, no tap; visual
       renders from bundled assets (no network at fire time); in-call degrades to heads-up
-- [ ] retire/park the PWA so 12:43-style bells don't fire twice (web-push + native)
+- [x] retired web-push: removed webpush/VAPID/subscribe/fireBell; server advances schedule
+      lazily + pings Telegram if the phone goes quiet 6h in waking hours. PWA subscription
+      parked (data/subscription.json.parked). No more dual-fire.
 - [x] N1 (server) — mode/text/ts chosen at schedule time; GET /next + POST /register (live on :8090)
 - [x] N2 (app/) — bell view renders visual/line/buzz full-screen from ?mode= params (SW → v5)
 - [x] Android app — WebView shell + BellAlarmReceiver(full-screen intent) + SyncWorker(poll /next)
@@ -39,6 +40,17 @@ Next: decide PWA retirement (avoid dual-fire during soak); then N3 hardening. Co
 - [x] write the founding PRD (docs/PRD_<Name>_<Month><Year>.md)
 
 ## Log
+### 2026-07-23 — web-push retired; native bell is sole delivery
+- Removed web-push entirely from the server: no webpush import, no VAPID, no
+  fireBell, no /subscribe or /vapid; dropped the web-push dep (package.json deps
+  now empty). The server no longer delivers bells — the phone does.
+- Server's new job: keep the schedule ahead of the clock (tick + lazy advance in
+  /next so a poll right after a bell never gets a past time) and watch liveness —
+  if the phone stops polling /next for 6h during waking hours, one Telegram ping
+  (dedup 12h; auto-rearms on recovery). Replaces the old subscription-death alert.
+- /health slimmed (next/nextFireAt/deviceSeenAt, no subscribed/dead/failures).
+  Rebuilt the container; live on :8090 and tailnet :8444. 12:43 bell intact.
+
 ### 2026-07-23 — native full-screen bell: built end-to-end (sideloaded, no Play Store)
 - Q from Ali: can a notification go full-screen without a tap? PWA can't (SW push
   can't open a window without a gesture; no web equiv of full-screen intent). Answer =
