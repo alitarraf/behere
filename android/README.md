@@ -6,11 +6,14 @@ takeover** on the phone: no tap needed. See the design in
 
 ## How it works (transport = local exact alarm, zero Google)
 
-- The bell-server keeps owning the schedule and now publishes the **next** bell —
-  `{ts, mode, text}` — at `GET /next` (chosen at schedule time, not fire time).
+- The bell-server keeps owning the schedule and publishes a **buffer of ~2 days of
+  bells** — a list of `{ts, mode, text}` — at `GET /next` (each chosen at schedule
+  time, not fire time; decided times never move, only new far-future ones append).
 - This app **polls `/next`** (WorkManager, every ~15 min + on open + after each
   fire) and arms a **doze-exempt exact alarm** (`AlarmManager.setAlarmClock`) for
-  `ts`. No push in the fire-time path.
+  **every** bell in the buffer. So the phone can be **off Tailscale / offline for up
+  to ~2 days and still fire every bell** — the alarms are all local. No push, ever.
+  (Tune the window with `BUFFER_DAYS` on the server.)
 - At `ts`, `BellAlarmReceiver` raises a **full-screen-intent** notification that
   launches `MainActivity` over the lock screen. A `WebView` loads the existing web
   UI (`/?bell=ts&mode=…&t=…`) — the same visual/line/buzz manifestations — then the

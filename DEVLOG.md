@@ -40,6 +40,20 @@ Next: N3 hardening (reboot re-arm, DST). Soak on the native bell.
 - [x] write the founding PRD (docs/PRD_<Name>_<Month><Year>.md)
 
 ## Log
+### 2026-07-23 — 2-day offline buffer
+- Bells no longer handed over one-at-a-time. Server keeps a STABLE list of bells
+  decided out to a BUFFER_DAYS (=2) horizon: past ones drop off, new ones only
+  APPEND beyond the last decided time, so a bell once decided never moves. /next
+  returns the whole array (13 bells today→+2d). /health shows buffered count +
+  horizon. Migrated the old single state.next into the list on boot.
+- Phone arms an exact alarm for EVERY buffered bell (AlarmScheduler.armBuffer:
+  cancel all slots 3000..3047, re-arm the future set). SyncWorker parses the array
+  + stores raw JSON for boot re-arm; BootReceiver re-arms the whole buffer offline.
+  Verified on S24: 13 distinct RTC_WAKEUP alarms armed, matching the server exactly.
+- Net: phone can be off Tailscale/offline ~2 days and still fire every bell (all
+  alarms local); reconnect tops the buffer back up. Liveness ping now only fires
+  once the buffer is nearly spent (~36h quiet), not on any brief disconnect.
+
 ### 2026-07-23 — web-push retired; native bell is sole delivery
 - Removed web-push entirely from the server: no webpush import, no VAPID, no
   fireBell, no /subscribe or /vapid; dropped the web-push dep (package.json deps

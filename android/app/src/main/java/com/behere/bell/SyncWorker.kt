@@ -11,17 +11,16 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
 /**
- * Fetches the upcoming bell from the server (GET /next) and arms the local
- * alarm. Runs periodically as a backstop and on demand (app open, after a
- * bell fires, on boot). The poll timing is non-critical — the alarm, not the
- * poll, is what fires the bell — so a missed poll just means the next one
- * catches up.
+ * Fetches the buffered bells from the server (GET /next → a list covering ~2
+ * days) and arms a local exact alarm for each. Runs periodically as a backstop
+ * and on demand (app open, after a bell fires, on boot). The poll timing is
+ * non-critical — the alarms, not the poll, fire the bells — so a missed poll
+ * just means the buffer drains a little before the next top-up.
  */
 class SyncWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, params) {
 
@@ -30,18 +29,12 @@ class SyncWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, params) {
             registerOnce()
             val body = httpGet("/next") ?: return Result.retry()
             if (body.isBlank() || body == "null") {
-                Log.i("behere", "sync: no bell scheduled")
+                Log.i("behere", "sync: no bells scheduled")
                 return Result.success()
             }
-            val o = JSONObject(body)
-            val ts = o.getLong("ts")
-            val mode = o.optString("mode", "buzz")
-            val text = if (o.has("text")) o.getString("text") else null
-
-            Prefs.saveNext(applicationContext, ts, mode, text)
-            if (ts > System.currentTimeMillis()) {
-                AlarmScheduler.schedule(applicationContext, ts, mode, text)
-            }
+            val bells = AlarmScheduler.parse(body)
+            Prefs.saveBuffer(applicationContext, body)   // for boot re-arm
+            AlarmScheduler.armBuffer(applicationContext, bells)
             Result.success()
         } catch (e: Exception) {
             Log.w("behere", "sync failed: ${e.message}")

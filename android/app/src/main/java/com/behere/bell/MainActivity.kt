@@ -135,9 +135,13 @@ class MainActivity : ComponentActivity() {
 
         val missing = missingPermissions()
         if (missing.isEmpty()) {
-            val ts = Prefs.nextTs(this)
-            val when_ = if (ts > System.currentTimeMillis())
-                "the next bell is set for\n" + SimpleDateFormat("EEE h:mm a", Locale.getDefault()).format(Date(ts))
+            val now = System.currentTimeMillis()
+            val upcoming = try { AlarmScheduler.parse(Prefs.getBuffer(this)) } catch (e: Exception) { emptyList() }
+                .filter { it.ts > now }.sortedBy { it.ts }
+            val when_ = if (upcoming.isNotEmpty())
+                "next bell\n" +
+                    SimpleDateFormat("EEE h:mm a", Locale.getDefault()).format(Date(upcoming.first().ts)) +
+                    "\n\n${upcoming.size} bells buffered"
             else "listening for the next bell…"
             root.addView(text(when_, 15f, 0.7f))
         } else {
