@@ -10,6 +10,7 @@ Now:  Native full-screen bell is THE bell. Verified on S24 (2026-07-23): locked 
       takeover + local visual; in-use → heads-up. Web-push RETIRED — server just owns the
       schedule (/next) + watches for a silent phone. Plan: docs/PRD_BeHereNow_FullScreenBell_July2026.md
 Next: N3 hardening (reboot re-arm, DST). Soak on the native bell.
+      Buffer set to 7 days (BUFFER_DAYS=7 in compose) — phone arms ~30 alarms, verified.
 
 ## TODO
 - [x] N0 — VERIFIED on S24: dozing phone woke itself → full-screen takeover, no tap; visual
