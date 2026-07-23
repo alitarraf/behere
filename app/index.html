@@ -116,10 +116,44 @@ import { renderBell } from './visual.js';
 const $ = id => document.getElementById(id);
 const msg = t => { $('msg').textContent = t; };
 
+// A single line, full-screen, ~9s, then gone — nothing kept.
+function renderLine(text, onDone) {
+  const el = document.createElement('div');
+  el.textContent = text || '';
+  el.style.cssText = 'position:fixed;inset:0;z-index:10;display:grid;place-items:center;'
+    + 'background:#0d0d10;color:#d8c9a3;font:italic 1.5em/1.7 Georgia,serif;'
+    + 'padding:1.4em;text-align:center;opacity:0;transition:opacity 1.2s';
+  document.body.appendChild(el);
+  requestAnimationFrame(() => { el.style.opacity = '1'; });
+  setTimeout(() => {
+    el.style.opacity = '0';
+    setTimeout(() => { el.remove(); onDone && onDone(); }, 1300);
+  }, 9000);
+}
+
+// Pure buzz: nothing to read — a single breath, then it dismisses itself.
+function renderBuzz(onDone) {
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;inset:0;z-index:10;display:grid;place-items:center;'
+    + 'background:#0d0d10;transition:opacity 1.2s';
+  const dot = document.createElement('div');
+  dot.style.cssText = 'width:14px;height:14px;border-radius:50%;border:1px solid #d8c9a366;'
+    + 'animation:breathe 7s ease-in-out infinite';
+  el.appendChild(dot);
+  document.body.appendChild(el);
+  setTimeout(() => {
+    el.style.opacity = '0';
+    setTimeout(() => { el.remove(); onDone && onDone(); }, 1300);
+  }, 6500);
+}
+
 // Visual bell: only if opened within 60s of the bell's own moment.
 // Late taps get the blank surface — the moment is gone.
 const FRESH_MS = 60_000;
-const bellTs = Number(new URLSearchParams(location.search).get('bell')) || 0;
+const params = new URLSearchParams(location.search);
+const bellTs = Number(params.get('bell')) || 0;
+const bellMode = params.get('mode') || '';        // native shell passes this explicitly
+const bellText = params.get('t') || '';
 const bellFresh = bellTs && Math.abs(Date.now() - bellTs) < FRESH_MS;
 history.replaceState(null, '', '/');   // the URL holds no trace either
 
@@ -176,14 +210,24 @@ function show(st) {
 }
 
 $('begin').addEventListener('click', begin);
-state().then(st => {
-  if (st === 'unsupported') return;
-  if (st === 'ready' && bellFresh) {
-    renderBell(bellTs, () => show('ready'));
-  } else {
-    show(st);
-  }
-});
+
+// Native shell: the local alarm just fired and opened us with an explicit mode.
+// Render the manifestation full-screen and skip the PWA state machine entirely —
+// this WebView isn't a subscriber, it's just the bell's face.
+if (bellMode) {
+  if (bellMode === 'visual') renderBell(bellTs || Date.now());
+  else if (bellMode === 'line') renderLine(bellText);
+  else renderBuzz();
+} else {
+  state().then(st => {
+    if (st === 'unsupported') return;
+    if (st === 'ready' && bellFresh) {
+      renderBell(bellTs, () => show('ready'));
+    } else {
+      show(st);
+    }
+  });
+}
 </script>
 </body>
 </html>

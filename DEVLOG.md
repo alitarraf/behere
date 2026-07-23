@@ -6,10 +6,24 @@
      Log    = newest dated entry on top, one per work session. -->
 
 ## Status
-Now:  M0–M4 done; SOAKING (~2 weeks). Public/friends version planned + gated: docs/PRD_BeHereNow_Public_July2026.md
-Next: live with the bell. If still wanted after the soak → P1 (Workers web-push spike). Blocking Q for P3: pick a domain.
+Now:  Native full-screen bell WORKS on the S24 (verified 2026-07-23). Locked/screen-off →
+      full takeover + local visual; in-use → graceful heads-up. Real server bell armed via
+      tailnet /next poll. Plan: docs/PRD_BeHereNow_FullScreenBell_July2026.md
+Next: decide PWA retirement (avoid dual-fire during soak); then N3 hardening. Consider making
+      this the primary bell and dropping web-push.
 
 ## TODO
+- [x] N0 — VERIFIED on S24: dozing phone woke itself → full-screen takeover, no tap; visual
+      renders from bundled assets (no network at fire time); in-call degrades to heads-up
+- [ ] retire/park the PWA so 12:43-style bells don't fire twice (web-push + native)
+- [x] N1 (server) — mode/text/ts chosen at schedule time; GET /next + POST /register (live on :8090)
+- [x] N2 (app/) — bell view renders visual/line/buzz full-screen from ?mode= params (SW → v5)
+- [x] Android app — WebView shell + BellAlarmReceiver(full-screen intent) + SyncWorker(poll /next)
+      + BootReceiver; builds to app/build/outputs/apk/debug/app-debug.apk (2.5 MB)
+- [x] bundled app/ into the APK (WebViewAssetLoader) — visual renders locally, zero
+      network dependency at fire time (closes advisor gap #3)
+- [ ] N3 — hardening (boot re-arm verified, DST/clock-change, token-refresh)
+- [ ] N4 — signed APK + run as primary bell through the soak; retire web-push if trusted
 - [x] real screenshots for the breadcrumbs campaign — 4 PNGs in marketing/screenshots/
       (3 landing states + ephemeral visual, captured headless from the live server);
       campaign flipped to `type: static` + glob in breadcrumbs/config/projects.yaml
@@ -25,6 +39,40 @@ Next: live with the bell. If still wanted after the soak → P1 (Workers web-pus
 - [x] write the founding PRD (docs/PRD_<Name>_<Month><Year>.md)
 
 ## Log
+### 2026-07-23 — native full-screen bell: built end-to-end (sideloaded, no Play Store)
+- Q from Ali: can a notification go full-screen without a tap? PWA can't (SW push
+  can't open a window without a gesture; no web equiv of full-screen intent). Answer =
+  a sideloaded native APK, no Play Store needed.
+- Architecture decision (advisor-surfaced): the fire-time trigger is a LOCAL exact
+  alarm (`setAlarmClock`, doze-exempt), NOT a real-time push. Server publishes the
+  next bell ahead of time; phone fires it itself. Kills the deep-sleep/Samsung-kill
+  delivery risk and means zero Google at fire time. Transport chosen: poll `/next`
+  (no FCM). PRD: docs/PRD_BeHereNow_FullScreenBell_July2026.md.
+- Server (live on :8090): mode/text/ts now chosen at schedule time (reschedule),
+  stored in state.next; web-push fireBell reuses those so PWA + native agree. Added
+  GET /next ({ts,mode,text}) and POST /register (writes device.json, liveness).
+  Verified against the running container.
+- app/: index.html now renders visual/line/buzz full-screen from ?bell&mode&t,
+  bypassing the PWA state machine when mode is present. Headless-verified all three
+  render on-brand. SW cache → behere-v5.
+- Android app (android/): ComponentActivity WebView shell over the lock screen +
+  BellAlarmReceiver (full-screen intent + vibrate) + SyncWorker (WorkManager poll +
+  register) + BootReceiver. Poll-only, no Firebase. AGP 8.5.2 / Kotlin 1.9.24 /
+  compileSdk 34 / minSdk 26. Built app-debug.apk (2.5 MB); manifest perms +
+  BELL_BASE_URL confirmed. Had to set org.gradle.caching=false (sandbox OOMs packing
+  the cache). Build/install steps in android/README.md.
+- VERIFIED on the S24 same session (wireless adb): installed the APK, granted the 3
+  perms via adb (appops USE_FULL_SCREEN_INTENT, exact-alarm, deviceidle whitelist).
+  Debug "Test bell in 60s" button → dozing phone woke itself to Awake and took over the
+  full screen, no tap (logcat "bell fired: visual", RTC_WAKEUP was "next wake from idle").
+  In-call, it correctly degraded to a heads-up banner instead of hijacking the call.
+- Found + fixed advisor gap #3 on the spot: phone couldn't resolve the tailnet host at
+  fire time → visual fell back to a dot. Fixed by BUNDLING app/ into the APK and serving
+  via WebViewAssetLoader → the flow-field visual now renders locally, 712KB frame proven.
+- Then Ali turned Tailscale on: phone resolves alipc-1...ts.net (100.70.241.53, 14ms),
+  sync succeeded, real server bell armed as RTC_WAKEUP for 12:43 today. Full loop live.
+- Open: dual-fire while the PWA is still subscribed (web-push + native both fire).
+
 ### 2026-07-20 — campaign screenshots captured
 - 4 real captures from the live server (headless puppeteer per devroot
   README pattern; localhost:8090 = the same container behind

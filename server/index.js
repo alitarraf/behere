@@ -30,7 +30,7 @@ const cfg = {
 
 // ---------- persistent state ----------
 const statePath = path.join(DATA, 'state.json');
-let state = { nextFireAt: null, failures: 0, dead: false };
+let state = { nextFireAt: null, next: null, failures: 0, dead: false, deviceSeenAt: null };
 if (existsSync(statePath)) {
   try { state = { ...state, ...JSON.parse(await readFile(statePath, 'utf8')) }; }
   catch { /* corrupted state: start fresh */ }
@@ -48,19 +48,30 @@ webpush.setVapidDetails('mailto:ali.tarraf@gmail.com', vapid.publicKey, vapid.pr
 // ---------- bell ----------
 const subPath = path.join(DATA, 'subscription.json');
 
+// Pick the WHOLE next bell — time AND manifestation — up front, so the phone
+// can be handed it ahead of time and fire it locally (see /next). ts is the
+// scheduled instant and doubles as the visual seed, so the phone's local render
+// and any web-push fallback are identical.
 async function reschedule(from = new Date()) {
-  state.nextFireAt = drawNextFire(from, cfg).getTime();
+  const ts = drawNextFire(from, cfg).getTime();
+  const mode = pickMode(cfg.weights);
+  const text = mode === 'line' ? pickLine()
+             : mode === 'visual' ? distill(ts)
+             : undefined;
+  state.nextFireAt = ts;                 // kept for the web-push tick + restore
+  state.next = { ts, mode, ...(text ? { text } : {}) };
   await saveState();
-  console.log('next bell:', new Date(state.nextFireAt).toString());
+  console.log('next bell:', mode, '@', new Date(ts).toString());
 }
 
 async function fireBell() {
   if (!existsSync(subPath)) { console.log('no subscription yet'); return; }
   const sub = JSON.parse(await readFile(subPath, 'utf8'));
-  const mode = pickMode(cfg.weights);
-  const payload = { mode, ts: Date.now() };
-  if (mode === 'line') payload.text = pickLine();
-  if (mode === 'visual') payload.text = distill(payload.ts);
+  // Use the manifestation chosen at schedule time (state.next), so a web-push
+  // bell and a native local-alarm bell for the same moment are identical.
+  const { mode, ts, text } = state.next || { mode: pickMode(cfg.weights), ts: Date.now() };
+  const payload = { mode, ts };
+  if (text) payload.text = text;
 
   try {
     await webpush.sendNotification(sub, JSON.stringify(payload), { TTL: cfg.ttlSec });
@@ -80,8 +91,10 @@ async function fireBell() {
 }
 
 // Boot: a nextFireAt missed while the server was down simply evaporates.
-if (!state.nextFireAt || state.nextFireAt < Date.now()) await reschedule();
-else console.log('next bell (restored):', new Date(state.nextFireAt).toString());
+// Also regenerate if the manifestation (state.next) is missing — older state.json
+// predates it.
+if (!state.nextFireAt || state.nextFireAt < Date.now() || !state.next) await reschedule();
+else console.log('next bell (restored):', state.next.mode, '@', new Date(state.nextFireAt).toString());
 
 setInterval(async () => {
   if (state.dead || !state.nextFireAt) return;
@@ -115,6 +128,33 @@ const server = http.createServer(async (req, res) => {
       window: `${cfg.windowStart}-${cfg.windowEnd}`,
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }));
+  }
+
+  // Native app: the upcoming bell, handed over ahead of time so the phone can
+  // set a local exact alarm and fire it itself (no push in the critical path).
+  if (req.method === 'GET' && url.pathname === '/next') {
+    state.deviceSeenAt = Date.now();     // the phone is alive; note it for liveness
+    saveState();                         // fire-and-forget; a lost write just re-syncs
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-cache' });
+    return res.end(JSON.stringify(state.next || null));
+  }
+
+  // Native app identity. Poll-based needs no token; a token may be sent later if
+  // we add an FCM re-sync nudge. Either way this marks the device present.
+  if (req.method === 'POST' && url.pathname === '/register') {
+    let body = '';
+    for await (const chunk of req) body += chunk;
+    let dev = {};
+    try { dev = body ? JSON.parse(body) : {}; } catch { /* empty registration is fine */ }
+    dev.registeredAt = Date.now();
+    await writeFile(path.join(DATA, 'device.json'), JSON.stringify(dev, null, 2));
+    state.deviceSeenAt = Date.now();
+    state.dead = false;
+    state.failures = 0;
+    await saveState();
+    console.log('device registered:', dev.kind || 'native', dev.token ? '(token)' : '(poll)');
+    res.writeHead(204);
+    return res.end();
   }
 
   if (req.method === 'POST' && url.pathname === '/subscribe') {
